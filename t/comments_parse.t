@@ -34,6 +34,11 @@ is_deeply( _flat($p), [ hs("1\n2") ] );
 $p->parse("#  !mdd \n #   1\n #   2");
 is_deeply( _flat($p), [ hs(" 1\n 2") ] );
 
+$p->parse("#!mdd a,b,c\n#1");
+is_deeply( _flat($p), [ hs( "1", 1, { a => 1, b => 1, c => 1 } ) ] );
+
+$p->parse("#!mdd a=bar,b=foo,c=baz\n#1");
+is_deeply( _flat($p), [ hs( "1", 1, { a => 'bar', b => 'foo', c => 'baz' } ) ] );
 
 done_testing;
 

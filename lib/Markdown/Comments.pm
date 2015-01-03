@@ -81,7 +81,9 @@ sub parse {
         $flush->();
     }
 
-    return $class->new( nodes => $nodes );
+    return ref($class)
+      ? $class->{nodes} = $nodes
+      : $class->new( nodes => $nodes );
 }
 
 sub _parse_sigil {
