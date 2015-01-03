@@ -21,25 +21,26 @@ sub mc { return $_[0]->{mc} }
 sub default_order { return $_[0]->{default_order} }
 
 sub format {
-    my ( $self, $grep, $sort ) = @_;
+    my ( $self, $grep ) = @_;
     my @nodes  = @{ $self->mc->nodes };
     my @result = $grep ? grep { $grep->($_) } @nodes : @nodes;
-    my @sorted = $sort ? sort { $sort->( $a, $b ) } @result : @result;
-    return join( "\n", map { $_->text } @sorted );
+    return join( "\n", map { $_->text } @result );
 }
 
 sub output {
-    my $self = shift;
-    my $grep = sub { $_[0]->is_markdown };
-    my $sort = sub {
-        my ( $node_a, $node_b ) = @_;
-        my $order_a =
-          defined $node_a->order ? $node_a->order : $self->default_order;
-        my $order_b =
-          defined $node_b->order ? $node_b->order : $self->default_order;
-        return $order_a <=> $order_b;
+    my ( $self, %args ) = @_;
+
+    my $match = sub {
+        my $node = shift;
+        for my $key ( keys %args ) {
+            return 1 if ( defined $node->$key && $node->$key eq $args{$key} );
+        }
+        return 0;
     };
-    return $self->format( $grep, $sort );
+
+    my $grep = %args ? sub { $match->($_) } : sub { 1 };
+
+    return $self->format($grep);
 }
 
 1;
