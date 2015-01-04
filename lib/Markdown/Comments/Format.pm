@@ -11,14 +11,10 @@ sub new {
         croak "Markdown::Comments object needed";
     }
 
-    # Default order parameter
-    $args{default_order} ||= 100;
-
     return bless \%args, $class;
 }
 
 sub mc { return $_[0]->{mc} }
-sub default_order { return $_[0]->{default_order} }
 
 sub format {
     my ( $self, $grep ) = @_;
@@ -27,18 +23,17 @@ sub format {
     return join( "\n", map { $_->text } @result );
 }
 
-sub output {
+sub markdown {
     my ( $self, %args ) = @_;
 
-    my $match = sub {
+    my $grep = sub {
         my $node = shift;
+        return 0 unless $node->is_markdown;
         for my $key ( keys %args ) {
             return 1 if ( defined $node->$key && $node->$key eq $args{$key} );
         }
         return 0;
     };
-
-    my $grep = %args ? sub { $match->($_) } : sub { 1 };
 
     return $self->format($grep);
 }
