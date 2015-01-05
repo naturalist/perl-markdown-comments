@@ -23,12 +23,13 @@ sub format {
     return join( "\n", map { $_->text } @result );
 }
 
-sub markdown {
+sub output {
     my ( $self, %args ) = @_;
 
     my $grep = sub {
         my $node = shift;
         return 0 unless $node->is_markdown;
+        return 1 unless %args;
         for my $key ( keys %args ) {
             return 1 if ( defined $node->$key && $node->$key eq $args{$key} );
         }

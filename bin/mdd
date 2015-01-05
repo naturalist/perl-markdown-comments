@@ -10,6 +10,8 @@ use Markdown::Comments;
 my $help     = 0;
 my $path     = $ARGV[0] // help();
 my $format   = 'Text';
+my $params   = '';
+my $args     = '';
 my $encoding = 'UTF-8';
 
 GetOptions(
@@ -19,67 +21,29 @@ GetOptions(
 );
 
 if ( !defined $ARGV[0] || $help ) {
-    print("Type mdd --help for help");
+    help();
     exit(1);
 }
 
-# Print docs here
 my $text = load_file($path);
-print _format( $format, $text );
+print fmt( $format, $text );
 
 #=========================================================================
 # !mdd code
-# __\_format()__ returns formatted text according to the _$format_
-# parameter.
 #
-# __Input__:
+# ### load\_file($path\_or\_module)
 #
-# - $class - The Markdown::Comments::Format subclass responsible for formatting the markdown text
-# - $text - The raw text to parse and format
+# If the parameter looks like a Perl module name it will try to locate it.
+# Otherwise, it will look for a file name.
 #
-# __Output__:
-# - Formatted text
+# __Input__
 #
-sub _format {
-    my ( $type, $text ) = @_;
-
-    local $@;
-    my $class;
-    eval { $class = load_class( $type, 'Markdown::Comments::Format' ) };
-    if ($@) {
-        print "Module Markdown::Comments::Format::$type is not installed";
-        exit(1);
-    }
-
-    my $mc = Markdown::Comments->parse($text);
-    return $class->new( mc => $mc )->output;
-}
-
-#=========================================================================
-# !mdd code
-# __help()__ reads the help contained in the \_\_DATA\_\_ section
-# of this very file and displays it using Markdown::Comments::Format
-# Exits with status 1
+# A scalar containing a path or module name
 #
-sub help {
-    my $text = do { local $/ = undef; <DATA> };
-    print _format( 'Text', $text );
-    exit(1);
-}
-
-#=========================================================================
-# !mdd code
-# __load\_file()__ takes a string and looks for a file with that name.
-# If a file can not be found, then it will try to locate a Perl module
-# with the same name.
+# __Output__
 #
-# __Input:__
+# The contents of the located file, or err if not found
 #
-# - $path - Pathname of file or a module name
-#
-# __Output:__
-#
-# The contents of that file
 sub load_file {
     my $path = shift;
 
@@ -97,13 +61,66 @@ sub load_file {
     close $handle;
 
     return $text;
+}
 
+
+#=========================================================================
+# !mdd code
+# ### fmt( $type, $text, %args ) 
+#
+# Returns formatted text according to the _$type parameter.
+#
+# __Input__:
+#
+# - $type - The Markdown::Comments::Format subclass responsible for formatting the markdown text.
+# - $text - The raw text to parse and format.
+# - %args - Arguments to be passed to the formatting class.
+#
+# __Output__:
+#
+# - Formatted text
+#
+sub fmt {
+    my ( $type, $text, %args ) = @_;
+
+    local $@;
+    my $class;
+    eval { $class = load_class( $type, 'Markdown::Comments::Format' ) };
+
+    # !mdd code
+    # Exit with error if the requested formatting class was not found
+    if ($@) {
+        print "Module Markdown::Comments::Format::$type is not installed";
+        exit(1);
+    }
+
+    my $mc = Markdown::Comments->parse($text);
+    return $class->new( mc => $mc )->output( %args );
 }
 
 #=========================================================================
 # !mdd code
-# __load\_class()__ attempts to load a class name. As a second parameter
-# you may provide a namespace.
+# ### help()
+#
+# Reads the help contained in the \_\_DATA\_\_ section
+# of this very file and displays it using Markdown::Comments::Format
+# Exits with status 1
+#
+sub help {
+    my $text = do { local $/ = undef; <DATA> };
+    print fmt( 'Text', $text );
+    exit(1);
+}
+
+#=========================================================================
+# !mdd code
+# load_class( $class, $prefix )
+#
+# This sub is jacked straight from Plack::Util. Feel free to Github me if 
+# you have a better solution.
+#
+# Attempt to require a Perl module. As an optional second parameter you may 
+# provide a namespace.
 #
 # __Input__
 #
@@ -112,7 +129,7 @@ sub load_file {
 #
 # __Output__
 #
-# - Class name
+# - Full class name of the successfuly required module.
 #
 sub load_class {
     my ( $class, $prefix ) = @_;
@@ -132,7 +149,7 @@ sub load_class {
 
 =pod
 
-=head1 Markdown Documentation Reader for Perl
+=head1 Create documentation from markdown code in Perl comments
 
 Please run C<mdd --help> for help
 
@@ -141,22 +158,28 @@ Please run C<mdd --help> for help
 =cut
 
 __DATA__
-# !mdd
-# # Markdown Documentation
+# !mdd help
 #
-# This tool extracts Markdown documentation comments (mdd) from Perl text files.
+# # Extract markdown documentation comments from Perl source files
 #
 # ## Usage
 #
-# mdd <filename|module> [options]
+# mdd [options] <filename|module>
 #
 # ## Options
 #
-# - __filename__ - The path for the Perl file, or a Perl module name. If a module name is provided,
-# then this script will try to locate it.
-
-# !mdd order=-1
-# # This should be on top
+# - --help - this lovely help message.
+# - --encoding - the source file encoding. Default is utf-8.
+# - --format - the format subclass to use when processing the extracted markdown text.
+#
+# ## Source
+#
+# Feel free to contribute to the Github repo:
+# https://github.com/naturalist/perl-markdown-comments
+#
+# ## Author
+#
+# Stefan G. \<minimal@cpan.org\>
 
 #vim:syntax=perl
 

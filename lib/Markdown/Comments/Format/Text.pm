@@ -8,8 +8,8 @@ use HTML::FormatText;
 use Text::Markdown 'markdown';
 
 sub output {
-    my ( $self ) = @_;
-    my $markdown = $self->SUPER::output();
+    my ( $self, %args ) = @_;
+    my $markdown = $self->SUPER::output( %args );
     my $html = markdown($markdown);
     return HTML::FormatText->format_string($html);
 }
