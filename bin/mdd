@@ -10,12 +10,12 @@ use Markdown::Comments;
 my $help     = 0;
 my $path     = $ARGV[0] // help();
 my $format   = 'Text';
-my $params   = '';
-my $args     = '';
+my %args     = ();
 my $encoding = 'UTF-8';
 
 GetOptions(
     "format=s"   => \$format,
+    "arg=s"      => \%args,
     "encoding=s" => \$encoding,
     "help"       => \$help,
 );
@@ -26,7 +26,7 @@ if ( !defined $ARGV[0] || $help ) {
 }
 
 my $text = load_file($path);
-print fmt( $format, $text );
+print fmt( $format, $text, %args );
 
 #=========================================================================
 # !mdd code
@@ -52,7 +52,7 @@ sub load_file {
     }
 
     if ( !$path || !-e $path ) {
-        print "Not found!";
+        print "Not found!\n";
         exit(1);
     }
 
@@ -90,7 +90,7 @@ sub fmt {
     # !mdd code
     # Exit with error if the requested formatting class was not found
     if ($@) {
-        print "Module Markdown::Comments::Format::$type is not installed";
+        print "Markdown::Comments::Format::$type is not installed\n";
         exit(1);
     }
 

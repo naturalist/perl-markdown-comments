@@ -2,13 +2,12 @@ package Markdown::Comments::Format;
 
 use strict;
 use warnings;
-use Carp;
 
 sub new {
     my ( $class, %args ) = @_;
 
     if ( !$args{mc} || ref( $args{mc} ) ne 'Markdown::Comments' ) {
-        croak "Markdown::Comments object needed";
+        die "Markdown::Comments object needed";
     }
 
     return bless \%args, $class;
@@ -23,7 +22,7 @@ sub format {
     return join( "\n", map { $_->text } @result );
 }
 
-sub output {
+sub to_markdown {
     my ( $self, %args ) = @_;
 
     my $grep = sub {
@@ -37,6 +36,11 @@ sub output {
     };
 
     return $self->format($grep);
+}
+
+sub output {
+    my ( $self, %args ) = @_;
+    return $self->to_markdown(%args);
 }
 
 1;
